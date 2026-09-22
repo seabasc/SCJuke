@@ -69,13 +69,17 @@ home view shows the entire library with no playlist filter.
   ALL playlists and prunes `db.tracks` if no playlist references it anymore.
 - `loadState()` contains a **v1 → v2 migration** (bare array of tracks is
   folded into a single "Main" playlist). Keep this migration if you touch it.
-- Playlist names are unique (case-insensitive). Last playlist can't be deleted.
+- Playlist names are unique (case-insensitive). **All playlists are
+  deletable — including the last one.** Deleting the last playlist lands on
+  Home ("All songs" is the library view, not a playlist, so the app never
+  ends up empty-broken). With zero playlists, adding a track or text-importing
+  auto-creates a "Main" playlist (`ensureActivePlaylist()`).
 
 ## Home view ("All songs")
 
 - `onHome` (module-level bool, defaults to `true` on page load) selects the
   unfiltered home view. It is **not** persisted — the app always starts on Home.
-- `activeId` still always points at a real playlist; while on Home, new tracks
+- `activeId` may be `null` when all playlists are deleted; `ensureActivePlaylist()` then auto-creates "Main" for adds/imports; while on Home, new tracks
   and text imports go into that active playlist (status messages name it).
 - `viewTracks()` = `onHome ? allTracks() : activeTracks()`; `allTracks()` is
   `Object.values(db.tracks).reverse()` (newest-first, insertion order).

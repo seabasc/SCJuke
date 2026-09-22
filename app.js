@@ -70,9 +70,9 @@ function loadState() {
     return db;
   }
 
-  if (raw && raw.version === 2 && Array.isArray(raw.playlists) && raw.playlists.length) {
+  if (raw && raw.version === 2 && Array.isArray(raw.playlists)) {
     if (!raw.activePlaylistId || !raw.playlists.some((p) => p.id === raw.activePlaylistId)) {
-      raw.activePlaylistId = raw.playlists[0].id;
+      raw.activePlaylistId = raw.playlists.length ? raw.playlists[0].id : null;
     }
     return raw;
   }
@@ -96,7 +96,21 @@ function activePlaylist() {
 }
 
 function activeTracks() {
-  return activePlaylist().trackIds.map((id) => db.tracks[id]).filter(Boolean);
+  const pl = activePlaylist();
+  return pl ? pl.trackIds.map((id) => db.tracks[id]).filter(Boolean) : [];
+}
+
+/* Playlist that receives new tracks / imports. If the user has deleted
+   every playlist, auto-create "Main" so adding/importing keeps working —
+   Home ("All songs") is the library view and always exists. */
+function ensureActivePlaylist() {
+  let pl = activePlaylist();
+  if (!pl) {
+    pl = makePlaylist("Main");
+    db.playlists.push(pl);
+    activeId = pl.id;
+  }
+  return pl;
 }
 
 function allTracks() {
@@ -469,7 +483,7 @@ async function addTrack() {
     return;
   }
 
-  const pl = activePlaylist();
+  const pl = ensureActivePlaylist();
   if (pl.trackIds.includes(videoId)) {
     setStatus(`Already in "${pl.name}".`, "error");
     return;
@@ -603,17 +617,22 @@ async function newPlaylist() {
 
 async function deletePlaylist(id) {
   const pl = db.playlists.find((p) => p.id === id);
-  if (db.playlists.length <= 1) {
-    setStatus("Can't delete the last playlist.", "error");
-    return;
-  }
   const ok = await askConfirm(
     `Delete "${pl.name}"?`,
     "Only the playlist is deleted — songs that live in other playlists are kept."
   );
   if (!ok) return;
   db.playlists = db.playlists.filter((p) => p.id !== id);
-  if (activeId === id) activeId = db.playlists[0].id;
+  if (activeId === id) {
+    if (db.playlists.length) {
+      activeId = db.playlists[0].id;
+    } else {
+      // No playlists left — land on Home. "All songs" is the library view,
+      // not a playlist, so the app always has somewhere to show tracks.
+      activeId = null;
+      onHome = true;
+    }
+  }
   save();
   render();
 }
@@ -852,7 +871,7 @@ async function importTracksInto(pl, importTracks) {
 
 async function importJSON(data) {
   const items = Array.isArray(data)
-    ? [{ name: activePlaylist().name, tracks: data }]
+    ? [{ name: activePlaylist()?.name || "Imported songs", tracks: data }]
     : data.playlists || (data.tracks ? [data] : []);
   if (!items.length) {
     setStatus("Couldn't find any playlists or tracks in that file.", "error");
@@ -905,7 +924,7 @@ async function importTextUrls(text) {
     return;
   }
 
-  const pl = activePlaylist();
+  const pl = ensureActivePlaylist();
   setStatus(`Importing into "${pl.name}"...`);
   const added = await importTracksInto(pl, importTracks);
   save();
@@ -939,7 +958,9 @@ els.exportBtn.addEventListener("click", () => {
   if (onHome) {
     exportAll();
   } else {
-    exportPlaylistFile(activePlaylist());
+    const pl = activePlaylist();
+    if (pl) exportPlaylistFile(pl);
+    else exportAll();
   }
 });
 els.exportAllBtn.addEventListener("click", (e) => {
