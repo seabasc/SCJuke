@@ -74,6 +74,16 @@ home view shows the entire library with no playlist filter.
   Home ("All songs" is the library view, not a playlist, so the app never
   ends up empty-broken). With zero playlists, adding a track or text-importing
   auto-creates a "Main" playlist (`ensureActivePlaylist()`). A fresh browser starts with zero playlists — the sidebar shows only "All songs".
+- **Undo (Ctrl+Z / Cmd+Z + toast)**: `deletePlaylist()` and `removeTrack()`
+  push an `{ label, restore }` entry onto a 10-deep undo stack via
+  `pushUndo()`. A bottom-center toast (`.undo-toast`, static HTML in index.html)
+  mirrors the NEWEST entry and stays ~6s (`UNDO_TOAST_MS`) with a green **Undo**
+  button and a dismiss × (dismiss only hides the toast — the stack stays).
+  `performUndo()` pops the newest entry and runs `restore()`: a playlist is
+  re-inserted at its original index (previous active view restored); a removed
+  track is re-added to `db.tracks` and spliced back into each playlist at its
+  original index — then `save()` + `render()`. Ctrl+Z is ignored while focus is
+  in an input/textarea so native text undo still works in the search box.
 
 ## Home view ("All songs")
 

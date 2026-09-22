@@ -31,6 +31,10 @@ const els = {
   spotlightChannel: $("spotlightChannel"),
   spotlightThumb: $("spotlightThumb"),
   shuffleBtn: $("shuffleBtn"),
+  undoToast: $("undoToast"),
+  undoToastMsg: $("undoToastMsg"),
+  undoToastBtn: $("undoToastBtn"),
+  undoToastClose: $("undoToastClose"),
 };
 
 /* ---------- State ---------- */
@@ -517,6 +521,12 @@ async function addTrack() {
 }
 
 function removeTrack(videoId) {
+  const track = db.tracks[videoId];
+  const memberships = [];
+  for (const pl of db.playlists) {
+    const i = pl.trackIds.indexOf(videoId);
+    if (i >= 0) memberships.push({ plId: pl.id, index: i });
+  }
   for (const pl of db.playlists) {
     pl.trackIds = pl.trackIds.filter((id) => id !== videoId);
   }
@@ -524,6 +534,17 @@ function removeTrack(videoId) {
   if (!stillUsed) delete db.tracks[videoId];
   save();
   render();
+  pushUndo({
+    label: `Removed "${track ? track.title : "song"}" from all playlists`,
+    restore() {
+      if (track) db.tracks[videoId] = { ...track };
+      for (const m of memberships) {
+        const pl = db.playlists.find((p) => p.id === m.plId);
+        if (pl)
+          pl.trackIds.splice(Math.min(m.index, pl.trackIds.length), 0, videoId);
+      }
+    },
+  });
   setStatus("Removed from all playlists.", "success");
 }
 
@@ -627,6 +648,10 @@ async function deletePlaylist(id) {
     "Only the playlist is deleted — songs that live in other playlists are kept."
   );
   if (!ok) return;
+  const index = db.playlists.findIndex((p) => p.id === id);
+  const snapshot = { id: pl.id, name: pl.name, trackIds: [...pl.trackIds] };
+  const prevActiveId = activeId;
+  const prevOnHome = onHome;
   db.playlists = db.playlists.filter((p) => p.id !== id);
   if (activeId === id) {
     if (db.playlists.length) {
@@ -640,6 +665,18 @@ async function deletePlaylist(id) {
   }
   save();
   render();
+  pushUndo({
+    label: `Deleted playlist "${pl.name}"`,
+    restore() {
+      db.playlists.splice(Math.min(index, db.playlists.length), 0, {
+        id: snapshot.id,
+        name: snapshot.name,
+        trackIds: [...snapshot.trackIds],
+      });
+      activeId = prevActiveId;
+      onHome = prevOnHome;
+    },
+  });
 }
 
 /* ---------- Custom dialog (native prompt/confirm are NEVER used) ---------- */
@@ -1016,6 +1053,71 @@ document.addEventListener("keydown", (e) => {
     closeExportMenu();
     if (els.dialog.classList.contains("open")) closeDialog(null);
   }
+});
+
+/* ---------- Undo (Ctrl+Z + toast) ----------
+   Destructive actions (playlist delete, song removal) register an
+   { label, restore } entry. The toast mirrors the NEWEST entry and fades
+   after UNDO_TOAST_MS; Ctrl+Z / Cmd+Z pops entries from the stack even
+   after the toast has faded. Dismissing the toast does NOT clear the
+   stack — Ctrl+Z still has history to work with. */
+
+const UNDO_STACK_CAP = 10;
+const UNDO_TOAST_MS = 6000;
+let undoStack = [];
+let undoToastTimer = null;
+
+function pushUndo(entry) {
+  undoStack.push(entry);
+  if (undoStack.length > UNDO_STACK_CAP) undoStack.shift();
+  syncUndoToast();
+}
+
+function syncUndoToast() {
+  const latest = undoStack[undoStack.length - 1];
+  if (!latest) {
+    clearTimeout(undoToastTimer);
+    els.undoToast.classList.remove("show");
+    return;
+  }
+  els.undoToastMsg.textContent = latest.label;
+  els.undoToast.classList.add("show");
+  clearTimeout(undoToastTimer);
+  undoToastTimer = setTimeout(
+    () => els.undoToast.classList.remove("show"),
+    UNDO_TOAST_MS
+  );
+}
+
+function performUndo() {
+  const entry = undoStack.pop();
+  if (!entry) {
+    setStatus("Nothing to undo.");
+    return;
+  }
+  entry.restore();
+  save();
+  render();
+  syncUndoToast();
+}
+
+els.undoToastBtn.addEventListener("click", performUndo);
+els.undoToastClose.addEventListener("click", () => {
+  clearTimeout(undoToastTimer);
+  els.undoToast.classList.remove("show");
+});
+document.addEventListener("keydown", (e) => {
+  if (!(e.ctrlKey || e.metaKey) || e.altKey || e.shiftKey) return;
+  if ((e.key || "").toLowerCase() !== "z") return;
+  const t = document.activeElement;
+  if (
+    t &&
+    (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)
+  ) {
+    return; // let native text undo work inside inputs (e.g. the search box)
+  }
+  e.preventDefault();
+  performUndo();
 });
 
 render();

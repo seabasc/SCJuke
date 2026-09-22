@@ -129,6 +129,15 @@
     </div>
   </div>
 
+  <!-- Undo toast: appears after deleting a playlist or removing a song;
+       stays ~6s with an Undo button. Ctrl+Z works even after it fades.
+       Driven by the undo stack in app.js (pushUndo/syncUndoToast/performUndo). -->
+  <div class="undo-toast" id="undoToast" role="status">
+    <span class="undo-toast-msg" id="undoToastMsg"></span>
+    <button type="button" class="undo-toast-undo" id="undoToastBtn">Undo</button>
+    <button type="button" class="undo-toast-close" id="undoToastClose" title="Dismiss (Ctrl+Z still works)">&times;</button>
+  </div>
+
   <script src="app.js"></script>
 </body>
 </html>
