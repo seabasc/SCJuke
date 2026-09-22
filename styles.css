@@ -458,12 +458,16 @@ body {
 .btn-icon {
   background: transparent;
   color: var(--text-dim);
-  padding: 8px;
+  width: 28px;
+  height: 28px;
+  padding: 0;
   border-radius: 50%;
+  font-size: 16px;
   line-height: 1;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .btn-icon:hover {
