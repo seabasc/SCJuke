@@ -14,6 +14,27 @@ The "Spotlight" panel cycles through random saved tracks so you can grab one
 quickly by clicking the thumbnail (click = copy URL). The top-level "All songs"
 home view shows the entire library with no playlist filter.
 
+## UI preferences (important)
+
+- **Never use native browser UI.** The user dislikes native browser
+  popups/widgets — no `alert()` / `confirm()` / `prompt()`, no native
+  `<select>` dropdowns, nothing OS-chrome-looking. Always build the app's own
+  styled equivalents:
+  - **Confirmations** (e.g. deleting a playlist) → the custom **dialog**
+    (`.dialog-overlay` / `.dialog` in index.html, `askDialog()` /
+    `askConfirm()` in app.js). Destructive OK buttons use `.btn-danger`.
+  - **Text entry** (e.g. new playlist name) → the same dialog in input mode
+    (`askName()`), with a styled `.dialog-input`.
+  - **Menus / dropdowns** → the custom `.playlist-menu` popover pattern
+    (append-or-static + `.track-menu-wrap` + `.open`), never `<select>`.
+  - Dialog behavior: opens with `.open` on the overlay; closes on OK/Cancel,
+    backdrop click, or Esc; Enter in the input confirms.
+- The one unavoidable exception: the **OS file picker** — it is browser-
+  required and can't be replaced with JS. It stays hidden behind the styled
+  "Import..." button (`#importBtn` → hidden `#importInput`).
+- Any new interactive UI must follow the same language: dark theme CSS
+  variables, `.btn` family, custom popovers — never native controls.
+
 ## File layout (flat, no build step)
 
 | File           | Purpose                                                        |

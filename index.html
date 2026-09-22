@@ -114,6 +114,21 @@
     </main>
   </div>
 
+  <!-- Custom dialog: replaces native prompt()/confirm() — the app never
+       uses native browser popups. One container, two modes (confirm /
+       text input), driven by askDialog()/askConfirm()/askName() in app.js. -->
+  <div class="dialog-overlay" id="dialog">
+    <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dialogTitle">
+      <div class="dialog-title" id="dialogTitle"></div>
+      <p class="dialog-message" id="dialogMessage"></p>
+      <input type="text" class="dialog-input" id="dialogInput" />
+      <div class="dialog-actions">
+        <button type="button" class="btn btn-ghost" id="dialogCancel">Cancel</button>
+        <button type="button" class="btn btn-primary" id="dialogOk">OK</button>
+      </div>
+    </div>
+  </div>
+
   <script src="app.js"></script>
 </body>
 </html>

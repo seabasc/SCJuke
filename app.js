@@ -16,6 +16,12 @@ const els = {
   exportBtn: $("exportBtn"),
   exportAllBtn: $("exportAllBtn"),
   exportMenuWrap: $("exportMenuWrap"),
+  dialog: $("dialog"),
+  dialogTitle: $("dialogTitle"),
+  dialogMessage: $("dialogMessage"),
+  dialogInput: $("dialogInput"),
+  dialogOk: $("dialogOk"),
+  dialogCancel: $("dialogCancel"),
   importBtn: $("importBtn"),
   importInput: $("importInput"),
   spotlight: $("spotlight"),
@@ -579,8 +585,8 @@ function toggleTrackInPlaylist(videoId, pl) {
 
 /* ---------- Playlist management ---------- */
 
-function newPlaylist() {
-  const name = (prompt("New playlist name:") || "").trim();
+async function newPlaylist() {
+  const name = await askName("New playlist", "What should it be called?");
   if (!name) return;
   if (db.playlists.some((p) => p.name.toLowerCase() === name.toLowerCase())) {
     setStatus(`A playlist named "${name}" already exists.`, "error");
@@ -595,18 +601,85 @@ function newPlaylist() {
   setStatus(`Created playlist "${name}"`, "success");
 }
 
-function deletePlaylist(id) {
+async function deletePlaylist(id) {
   const pl = db.playlists.find((p) => p.id === id);
   if (db.playlists.length <= 1) {
     setStatus("Can't delete the last playlist.", "error");
     return;
   }
-  if (!confirm(`Delete playlist "${pl.name}"? Songs in other playlists are kept.`)) return;
+  const ok = await askConfirm(
+    `Delete "${pl.name}"?`,
+    "Only the playlist is deleted — songs that live in other playlists are kept."
+  );
+  if (!ok) return;
   db.playlists = db.playlists.filter((p) => p.id !== id);
   if (activeId === id) activeId = db.playlists[0].id;
   save();
   render();
 }
+
+/* ---------- Custom dialog (native prompt/confirm are NEVER used) ---------- */
+
+let dialogResolve = null;
+
+function openDialog({
+  title,
+  message = "",
+  input = null,
+  okLabel = "OK",
+  danger = false,
+}) {
+  els.dialogTitle.textContent = title;
+  els.dialogMessage.textContent = message;
+  els.dialogMessage.hidden = !message;
+  const showInput = input !== null;
+  els.dialogInput.hidden = !showInput;
+  if (showInput) els.dialogInput.value = input;
+  els.dialogOk.textContent = okLabel;
+  els.dialogOk.classList.toggle("btn-danger", danger);
+  els.dialog.classList.add("open");
+  if (showInput) {
+    els.dialogInput.focus();
+    els.dialogInput.select();
+  }
+}
+
+function closeDialog(result) {
+  els.dialog.classList.remove("open");
+  const resolve = dialogResolve;
+  dialogResolve = null;
+  if (resolve) resolve(result);
+}
+
+/* Promise-based: resolve = true (OK clicked) or null (cancel/backdrop/Esc);
+   input mode resolves the trimmed value or null. */
+function askDialog(opts) {
+  return new Promise((resolve) => {
+    dialogResolve = resolve;
+    openDialog(opts);
+  });
+}
+
+function askConfirm(title, message, okLabel = "Delete") {
+  return askDialog({ title, message, okLabel, danger: true }).then((v) => !!v);
+}
+
+function askName(title, message, okLabel = "Create") {
+  return askDialog({ title, message, input: "", okLabel }).then((v) =>
+    v == null ? null : v.trim()
+  );
+}
+
+els.dialogOk.addEventListener("click", () => {
+  closeDialog(els.dialogInput.hidden ? true : els.dialogInput.value);
+});
+els.dialogCancel.addEventListener("click", () => closeDialog(null));
+els.dialog.addEventListener("click", (e) => {
+  if (e.target === els.dialog) closeDialog(null); // backdrop click
+});
+els.dialogInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") els.dialogOk.click();
+});
 
 /* ---------- Export ---------- */
 
@@ -915,6 +988,7 @@ document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") {
     closePlaylistMenu();
     closeExportMenu();
+    if (els.dialog.classList.contains("open")) closeDialog(null);
   }
 });
 

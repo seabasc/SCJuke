@@ -478,6 +478,84 @@ body {
   color: var(--accent);
 }
 
+.btn-ghost {
+  background: var(--bg-hover);
+  color: var(--text);
+}
+
+.btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.btn-danger {
+  background: var(--danger);
+  color: #fff;
+}
+
+.btn-danger:hover {
+  background: #e5556a;
+}
+
+/* ============ Custom dialog (no native prompt/confirm ever) ============ */
+.dialog-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.dialog-overlay.open {
+  display: flex;
+}
+
+.dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: min(400px, calc(100vw - 32px));
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
+  padding: 20px;
+}
+
+.dialog-title {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.dialog-message {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-dim);
+}
+
+.dialog-input {
+  background: #000;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-size: 14px;
+  color: var(--text);
+  outline: none;
+}
+
+.dialog-input:focus {
+  border-color: var(--accent);
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 4px;
+}
+
 /* ============ Track list ============ */
 .track-list {
   list-style: none;
