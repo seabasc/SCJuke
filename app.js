@@ -261,18 +261,18 @@ function renderSidebar() {
       });
     });
 
-    if (db.playlists.length > 1) {
-      const del = document.createElement("button");
-      del.className = "playlist-delete";
-      del.type = "button";
-      del.textContent = "\u00d7";
-      del.title = "Delete playlist";
-      del.addEventListener("click", (e) => {
-        e.stopPropagation();
-        deletePlaylist(pl.id);
-      });
-      li.appendChild(del);
-    }
+    // The delete button is ALWAYS rendered — every playlist is deletable,
+    // even the last one (the app always has Home / "All songs" to fall back on).
+    const del = document.createElement("button");
+    del.className = "playlist-delete";
+    del.type = "button";
+    del.textContent = "\u00d7";
+    del.title = "Delete playlist";
+    del.addEventListener("click", (e) => {
+      e.stopPropagation();
+      deletePlaylist(pl.id);
+    });
+    li.appendChild(del);
 
     els.playlistNav.appendChild(li);
   }
