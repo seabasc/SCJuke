@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/png" href="scjtransparent.png" />
+  <title>SC Juke</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="logo">
+        <img class="logo-icon" src="scjtransparent.png" alt="SC Juke" />
+        <span class="logo-text">SC&nbsp;Juke</span>
+      </div>
+
+      <div class="sidebar-section-title">Playlists</div>
+      <ul class="playlist-nav" id="playlistNav"></ul>
+      <button id="newPlaylistBtn" class="btn sidebar-btn" type="button">
+        +&nbsp; New playlist
+      </button>
+
+      <div class="sidebar-footer">
+        <div class="sidebar-count" id="trackCount">0 saved</div>
+        <button id="exportBtn" class="sidebar-action" type="button">
+          Export this playlist
+        </button>
+        <button id="exportAllBtn" class="sidebar-action" type="button">
+          Export all
+        </button>
+        <button id="importBtn" class="sidebar-action" type="button">
+          Import...
+        </button>
+        <input
+          type="file"
+          id="importInput"
+          accept=".json,.txt,.js,application/json,text/plain"
+          hidden
+        />
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <h1 id="playlistName">Main</h1>
+        <div class="topbar-actions">
+          <input
+            type="search"
+            id="searchInput"
+            class="search-input"
+            placeholder="Search your list..."
+            autocomplete="off"
+          />
+        </div>
+      </header>
+
+      <section class="content">
+      <div class="list-col">
+      <section class="add-section">
+        <input
+          type="url"
+          id="urlInput"
+          class="url-input"
+          placeholder="Paste a YouTube link (https://www.youtube.com/watch?v=...)"
+          autocomplete="off"
+        />
+        <button id="addBtn" class="btn btn-primary" type="button">Add</button>
+      </section>
+      <p class="status" id="status" role="status" aria-live="polite"></p>
+
+      <ul class="track-list" id="trackList"></ul>
+
+      <div class="empty-state" id="emptyState">
+        <p>No songs in this playlist yet.</p>
+        <p class="empty-sub">
+          Paste a YouTube link above, or import a playlist from the sidebar.
+        </p>
+      </div>
+      </div>
+
+      <aside class="spotlight" id="spotlight">
+        <h2 class="spotlight-heading">Spotlight</h2>
+        <button
+          class="spotlight-thumb"
+          id="spotlightThumb"
+          type="button"
+          title="Click to copy URL"
+        >
+          <img id="spotlightImg" alt="" />
+          <span class="spotlight-hint" id="spotlightHint">Click to copy URL</span>
+        </button>
+        <div class="spotlight-title" id="spotlightTitle"></div>
+        <div class="spotlight-channel" id="spotlightChannel"></div>
+        <button class="btn spotlight-shuffle" id="shuffleBtn" type="button">
+          &#8635;&nbsp; Shuffle
+        </button>
+      </aside>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
