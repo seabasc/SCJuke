@@ -15,6 +15,7 @@ const els = {
   newPlaylistBtn: $("newPlaylistBtn"),
   exportBtn: $("exportBtn"),
   exportAllBtn: $("exportAllBtn"),
+  exportMenuWrap: $("exportMenuWrap"),
   importBtn: $("importBtn"),
   importInput: $("importInput"),
   spotlight: $("spotlight"),
@@ -161,6 +162,7 @@ function setStatus(message, type = "") {
 
 function render() {
   closePlaylistMenu();
+  closeExportMenu();
   els.playlistName.textContent = onHome ? "All songs" : activePlaylist().name;
   els.exportBtn.title = onHome
     ? "On All songs — this exports your full library"
@@ -649,6 +651,32 @@ function exportAll() {
   setStatus("Exported full library", "success");
 }
 
+function closeExportMenu() {
+  els.exportMenuWrap.classList.remove("open");
+}
+
+/* Flat export: every song in the library as one bare JSON array (in the
+   order they were added), no playlist structure. Import merges a bare array
+   into the active playlist, skipping duplicates already there. */
+function exportFlat() {
+  const tracks = Object.values(db.tracks).map((t) => ({
+    id: t.id,
+    url: t.url,
+    title: t.title,
+    channel: t.channel,
+    thumbnail: t.thumbnail,
+  }));
+  if (!tracks.length) {
+    setStatus("Your library is empty — nothing to export.", "error");
+    return;
+  }
+  triggerDownload("sc-juke-all-songs.json", JSON.stringify(tracks, null, 2));
+  setStatus(
+    `Exported ${tracks.length} song${tracks.length === 1 ? "" : "s"} (flat list)`,
+    "success"
+  );
+}
+
 /* ---------- Clipboard ---------- */
 
 async function copyToClipboard(text, button) {
@@ -841,7 +869,20 @@ els.exportBtn.addEventListener("click", () => {
     exportPlaylistFile(activePlaylist());
   }
 });
-els.exportAllBtn.addEventListener("click", exportAll);
+els.exportAllBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  const willOpen = !els.exportMenuWrap.classList.contains("open");
+  closeExportMenu();
+  if (willOpen) els.exportMenuWrap.classList.add("open");
+});
+
+els.exportMenuWrap.querySelectorAll(".playlist-menu-item").forEach((row) => {
+  row.addEventListener("click", () => {
+    if (row.dataset.export === "flat") exportFlat();
+    else exportAll();
+    closeExportMenu();
+  });
+});
 els.importBtn.addEventListener("click", () => els.importInput.click());
 els.importInput.addEventListener("change", () => {
   const file = els.importInput.files[0];
@@ -863,9 +904,18 @@ els.spotlightThumb.addEventListener("click", () => {
 
 document.addEventListener("click", (e) => {
   if (openMenuWrap && !openMenuWrap.contains(e.target)) closePlaylistMenu();
+  if (
+    els.exportMenuWrap.classList.contains("open") &&
+    !els.exportMenuWrap.contains(e.target)
+  ) {
+    closeExportMenu();
+  }
 });
 document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape") closePlaylistMenu();
+  if (e.key === "Escape") {
+    closePlaylistMenu();
+    closeExportMenu();
+  }
 });
 
 render();

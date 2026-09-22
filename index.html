@@ -26,9 +26,22 @@
         <button id="exportBtn" class="sidebar-action" type="button">
           Export this playlist
         </button>
-        <button id="exportAllBtn" class="sidebar-action" type="button">
-          Export all
-        </button>
+        <div class="track-menu-wrap" id="exportMenuWrap">
+          <button id="exportAllBtn" class="sidebar-action" type="button">
+            Export all &#9662;
+          </button>
+          <div class="playlist-menu export-menu" id="exportMenu">
+            <div class="playlist-menu-title">Export all songs</div>
+            <button type="button" class="playlist-menu-item" data-export="playlists">
+              <span class="playlist-menu-name">With playlists</span>
+              <span class="playlist-menu-hint">keep groups</span>
+            </button>
+            <button type="button" class="playlist-menu-item" data-export="flat">
+              <span class="playlist-menu-name">All songs</span>
+              <span class="playlist-menu-hint">flat list</span>
+            </button>
+          </div>
+        </div>
         <button id="importBtn" class="sidebar-action" type="button">
           Import...
         </button>

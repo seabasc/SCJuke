@@ -133,9 +133,12 @@ home view shows the entire library with no playlist filter.
   }
   ```
   Files: `<slug>.json` or `sc-juke-library.json`.
+- **"Export all" opens a small menu** (`#exportMenu`, same UI as the add-playlist dropdown; closed by outside click / Esc / `render()`):
+  - **With playlists** -> `exportAll()` -> `sc-juke-library.json` (every playlist in the library, regardless of the active view)
+  - **All songs (flat list)** -> `exportFlat()` -> `sc-juke-all-songs.json` = one bare JSON array of all tracks in `db.tracks`, in added order
 - **Import** accepts:
-  - Our JSON export (single playlist object or `{playlists:[...]}` or
-    bare array of tracks),
+  - Our JSON export (single playlist object or `{playlists:[...]}`)
+  - A bare array of tracks (the flat export) -> merged into the **active playlist**, duplicates skipped
   - A plain text file of one YouTube URL per line.
 - `normalizeImportTrack()` is lenient: accepts `url` or `id`, `title`,
   `channel` or `author_name`, `thumbnail` or `thumbnail_url`, or a bare string.

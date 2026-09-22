@@ -645,6 +645,28 @@ body {
   font-weight: 700;
 }
 
+/* ============ Export-all menu (sidebar footer) ============ */
+/* Lives in static HTML (not appended/removed like the track menu), so it is
+   hidden until the wrap gets .open. Opens upward — the button sits at the
+   bottom of the sidebar, so downward would fall off-screen. */
+.track-menu-wrap .playlist-menu {
+  display: none;
+}
+
+.track-menu-wrap.open .playlist-menu {
+  display: flex;
+}
+
+.export-menu {
+  top: auto;
+  bottom: calc(100% + 8px);
+}
+
+.playlist-menu-hint {
+  color: var(--text-dim);
+  font-size: 11px;
+}
+
 /* ============ View-switch list animation ============ */
 @keyframes rowExitRight {
   from {
