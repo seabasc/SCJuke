@@ -44,8 +44,11 @@ function makePlaylist(name) {
 }
 
 function freshState() {
-  const pl = makePlaylist("Main");
-  return { version: 2, tracks: {}, playlists: [pl], activePlaylistId: pl.id };
+  // Fresh start = ZERO playlists: Home ("All songs") is the always-present
+  // library view, not a playlist, so no playlist is needed to exist.
+  // A "Main" playlist is only created on demand — by the user, or by the
+  // first add/import via ensureActivePlaylist().
+  return { version: 2, tracks: {}, playlists: [], activePlaylistId: null };
 }
 
 function loadState() {
@@ -60,7 +63,9 @@ function loadState() {
   // v1 migration: bare array of tracks -> one "Main" playlist.
   if (Array.isArray(raw)) {
     const db = freshState();
-    const pl = db.playlists[0];
+    const pl = makePlaylist("Main");
+    db.playlists.push(pl);
+    db.activePlaylistId = pl.id;
     for (const t of raw) {
       if (t && t.id) {
         db.tracks[t.id] = t;

@@ -73,7 +73,7 @@ home view shows the entire library with no playlist filter.
   deletable — including the last one.** Deleting the last playlist lands on
   Home ("All songs" is the library view, not a playlist, so the app never
   ends up empty-broken). With zero playlists, adding a track or text-importing
-  auto-creates a "Main" playlist (`ensureActivePlaylist()`).
+  auto-creates a "Main" playlist (`ensureActivePlaylist()`). A fresh browser starts with zero playlists — the sidebar shows only "All songs".
 
 ## Home view ("All songs")
 
