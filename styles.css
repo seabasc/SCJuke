@@ -660,6 +660,10 @@ body {
 .export-menu {
   top: auto;
   bottom: calc(100% + 8px);
+  /* Open rightward from the button's left edge — the base rule's right: 0
+     would stretch the menu left, off-screen (the button is near x=0). */
+  left: 0;
+  right: auto;
 }
 
 .playlist-menu-hint {
